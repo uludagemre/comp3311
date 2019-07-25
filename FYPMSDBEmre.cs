@@ -105,7 +105,7 @@ namespace FYPMSWebsite.App_Code
             // requirement grades given by any of the faculty that are the supervisors of a project  *
             // identified by its fyp id, for all the students in a group identified by its group id. *
             //****************************************************************************************
-            sql = "";
+            sql = "select s.username,s.studentname,r.proposalgrade,r.progressgrade,r.finalgrade,r.presentationgrade from requirement R,Students S,Projectgroup G,Supervises sp where s.groupid=g.groupId and g.fypassigned = sp.fypid and R.studentusername = S.username and s.groupid = "+groupId+" and sp.fypid ="+fypId ;
             return myOracleDBAccess.GetData(sql);
         }
 
@@ -119,7 +119,7 @@ namespace FYPMSWebsite.App_Code
             // can be updated by ANY of the supervisors of a project, only the username of the      *
             // faculty who assigned a group to a project appears in the Requirement table record.   *                                                  *
             //***************************************************************************************
-            sql = "";
+            sql = "update Requirement set proposalGrade="+proposalGrade+",proposalGrade="+proposalGrade+",progressGrade="+progressGrade+",presentationGrade="+presentationGrade+" where studentUsername='" + studentUsername + "' and "+fypId+" in (select F.fypId from FYProject F,Supervises S,Requirement R where s.fypid = f.fypid and r.facultyusername = s.username and r.studentusername = '"+studentusername+"')";
             return SetData(sql);
         }
 
@@ -131,7 +131,7 @@ namespace FYPMSWebsite.App_Code
             // codes of the supervisors of a project identified by its FYP id. *
             // Order the result by faculty code ascending.                     *
             //******************************************************************
-            sql = "SELECT Faculty.facultyCode FROM FACULTY,FYProject WHERE fypId = "+fypId+" ORDER BY Faculty.facultyCode asc;";
+            sql = "SELECT Faculty.facultyCode FROM FACULTY,FYProject WHERE fypId = "+fypId+" ORDER BY Faculty.facultyCode asc";
             return myOracleDBAccess.GetData(sql);
         }
 
@@ -144,7 +144,7 @@ namespace FYPMSWebsite.App_Code
             // A group code prefix is the group code minus its trailing  *
             // integer (e.g., for group code "FL1" the prefix is "FL").  *
             //************************************************************
-            sql = "";
+            sql = "select substr(groupCode, 1,2),count(*) from projectGroup where substr(groupCode, 1,2) = '"+groupCodePrefix+"' group by substr(groupCode, 1,2)";
             return myOracleDBAccess.GetAggregateValue(sql);
         }
 
@@ -158,7 +158,7 @@ namespace FYPMSWebsite.App_Code
             // a project identified by its fyp id where the project is available. Order the  *
             // result first by group id ascending and then by student name ascending.        *
             //********************************************************************************
-            sql = "";
+            sql = "select s.studentname,s.username,i.groupId,i.fyppriority from interestedin i,students s where i.groupid = s.groupid and i.fypId = "+fypid+" order by i.groupid asc, s.studentname asc";
             return myOracleDBAccess.GetData(sql);
         }
 
@@ -171,7 +171,7 @@ namespace FYPMSWebsite.App_Code
             // assigned to a project identified by its fyp id. Order the result first by group *
             // id ascending and then by student name ascending.                                *
             //**********************************************************************************
-            sql = "";
+            sql = "select s.studentName,g.groupId,g.groupCode from ProjectGroup G,Students S where s.groupId = G.groupId and g.fypassigned = "+fypId+" order by g.groupId asc,s.studentname desc ";
             return myOracleDBAccess.GetData(sql);
         }
 
@@ -183,7 +183,7 @@ namespace FYPMSWebsite.App_Code
             // title of the projects supervised by a faculty identified  *
             // by his/her username. Order the result by title ascending. *
             //************************************************************
-            sql = "SELECT FYProject.fypId,FYProject.title FROM FYProject,Faculty,Supervises WHERE Supervises.username = ";
+            sql = "SELECT FYProject.fypId,FYProject.title FROM FYProject,Faculty,Supervises WHERE Supervises.username = "+username;
             return myOracleDBAccess.GetData(sql);
         }
 
@@ -204,7 +204,7 @@ namespace FYPMSWebsite.App_Code
             // TODO 15: Used in Faculty/AssignGroupToProject.aspx.cs                      *
             // Construct the SQL UPDATE statement to assign a project group to a project. *
             //*****************************************************************************
-            sql = "UPDATE ProjectGroup SET fypAssigned='"+fypId+"' WHERE groupId=" + groupId+ "'and groupCode='"+groupCode+"'";
+            sql = "UPDATE ProjectGroup SET fypAssigned="+fypId+" WHERE groupId=" + groupId+ "'and groupCode='"+groupCode+"'";
             return SetData(sql);
         }
 
@@ -296,7 +296,7 @@ namespace FYPMSWebsite.App_Code
             // Construct the SQL SELECT statement to retrieve the username of the cosupervisor, if *
             // any, of a project, identified by its fyp id, given the username of one supervisor.  *
             //**************************************************************************************
-            sql = "select username from Supervises where Supervises.fypId in (select fypId from Supervises group by fypId having count(*)> 1) and fypid = "+fypId+" and username <> '"+username+"';
+            sql = "select username from Supervises where Supervises.fypId in (select fypId from Supervises group by fypId having count(*)> 1) and fypid = "+fypId+" and username <> '"+username+"'";
             return myOracleDBAccess.GetData(sql);
         }
 
@@ -314,7 +314,8 @@ namespace FYPMSWebsite.App_Code
             // Construct the SQL UPDATE statement to update all the values of a FYProject table *
             // record with the corresponding parameter value for the given project fyp id.      *
             //***********************************************************************************
-            sql = "";
+            sql = "UPDATE FYProject SET fypId="+fypId+",title='"+title+"',fypDescription='"+fypDescription+"',fypCategory='"++"',"
+            +"fypType='"+fypType+"',requirement='"+requirement+"',minStudents="+minStudents+",maxStudents="+maxStudents+",isAvailable='"+isAvailable+"' WHERE fypId=" + fypId ;
             if (!myOracleDBAccess.SetData(sql, trans)) { myOracleDBAccess.DisposeTransaction(trans); return false; }
 
             // Finally, update the cosupervisor, if necessary.
@@ -348,7 +349,7 @@ namespace FYPMSWebsite.App_Code
             // Construct the SQL DELETE statement to delete the Supervises *
             // record identified by an fyp id and a username.              *
             //**************************************************************
-            sql = "";
+            sql = "DELETE FROM SUPERVISES WHERE fypid="+fypid+" and username= '"+username+"'";
             return myOracleDBAccess.SetData(sql, trans);
         }
 
@@ -359,7 +360,7 @@ namespace FYPMSWebsite.App_Code
             // Construct the SQL INSERT statement to add a record to the InterestedIn *
             // table with the specified fyp id, group id and priority values.         *
             //*************************************************************************
-            sql = "";
+            sql = "insert into InterestedIn values ("+fypId+","+groupId+","+fypPriority+")";
             return SetData(sql);
         }
 
@@ -371,7 +372,7 @@ namespace FYPMSWebsite.App_Code
             // the project assigned to the group identified by its groupId. *
             // Order the result by title ascending.                         * 
             //***************************************************************
-            sql = "";
+            sql = "select f.title from fyproject f,projectgroup p where f.fypid=p.fypassigned and p.groupid ="+groupid;
             return myOracleDBAccess.GetData(sql);
         }
 
@@ -381,7 +382,7 @@ namespace FYPMSWebsite.App_Code
             // TODO 26: Used in Student/ManageProjectGroup.aspx.cs                  *
             // Construct the SQL UPDATE statement to assign a groupId to a student. *
             //***********************************************************************
-            sql = "";
+            sql = "update Students set groupId=" + groupId + "where username=" + username;
             return SetData(sql);
         }
 
@@ -392,7 +393,7 @@ namespace FYPMSWebsite.App_Code
             // Construct the SQL SELECT statement to retrieve all of the     *
             // attribute values of a student identified by his/her username. *
             //****************************************************************
-            sql = "";
+            sql = "select * from Students where username = "+username;
             return myOracleDBAccess.GetData(sql);
         }
 
@@ -403,7 +404,7 @@ namespace FYPMSWebsite.App_Code
             // Construct the SQL UPDATE statement to remove a student *
             // identified by his/her username from a project group.   *
             //*********************************************************
-            sql = "";
+            sql = "update Students set groupId= null where username=" + username;
             return SetData(sql);
         }
 
@@ -414,7 +415,7 @@ namespace FYPMSWebsite.App_Code
             // Construct the SQL DELETE statement to delete a      *
             // project group identified by its groupId.            *
             //******************************************************
-            sql = "";
+            sql = "DELETE FROM ProjectGroup where groupId = "+groupId;
             return SetData(sql);
         }
 
@@ -425,7 +426,7 @@ namespace FYPMSWebsite.App_Code
             // Construct the SQL INSERT statement to add a project group with the specified   *
             // groupId to the ProjectGroup table. All other attributes values should be null. *
             //*********************************************************************************
-            sql = "";
+            sql = "insert into ProjectGroup values ("+groupId+",null,null,null)";
             return SetData(sql);
         }
 
@@ -436,7 +437,7 @@ namespace FYPMSWebsite.App_Code
             // Construct the SQL SELECT statement to retrieve the fyp id and title of the *
             // project to which a student, identified by his/her username, is assigned.   *
             //*****************************************************************************
-            sql = "";
+            sql = "select F.fypId,F.title from FYProject F,projectgroup P,students S where s.groupid = p.groupid and p.fypassigned = f.fypid and s.username = '"+username+"'";
             return myOracleDBAccess.GetData(sql);
         }
 
@@ -448,7 +449,7 @@ namespace FYPMSWebsite.App_Code
             // as the proposal, progress, final and presentation grades, given by the    *
             // supervisor and the reader for the student identified by his/her username. *
             //****************************************************************************
-            sql = "";
+            sql = "select f.facultyname,r.proposalgrade,r.progressgrade,r.finalgrade,r.presentationgrade from Faculty F,Requirement R,students S where s.username = r.studentusername and f.username = r.facultyusername and s.username = '"+username+"'";
             return myOracleDBAccess.GetData(sql);
         }
 
@@ -465,7 +466,7 @@ namespace FYPMSWebsite.App_Code
             // attribute of the Requirement table whose values are specified   *
             // by the corresponding parameter of this method.                  *
             //******************************************************************
-            sql = "";
+            sql = "insert into Requirement values ('"+facultyUsername+"','"+studentUsername+"',"+proposalGrade+","+progressGrade+","+finalGrade+","+presentationGrade+")";
             return SetData(sql);
         }
 
@@ -476,7 +477,7 @@ namespace FYPMSWebsite.App_Code
             // Construct the SQL SELECT statement to retrieve the fyp id of the project *
             // to which a project group, identified by its group id, has been assigned. *
             //***************************************************************************
-            sql = "";
+            sql = "select F.fypId from FYProject F,ProjectGroup P where p.fypassigned = f.fypid and p.groupid = "+groupId;
             return myOracleDBAccess.GetData(sql);
         }
 
@@ -487,7 +488,7 @@ namespace FYPMSWebsite.App_Code
             // Construct the SQL SELECT statement to retrieve     *
             // the username and name of all faculty.              *
             //*****************************************************
-            sql = "";
+            sql = "select username,facultyName from faculty";
             return myOracleDBAccess.GetData(sql);
         }
 
@@ -502,7 +503,7 @@ namespace FYPMSWebsite.App_Code
             // an interest should be retrieved. Groups that have been assigned to a project cannot *
             // indicate an interest in any project. Order the result by title ascending.           *                                       *
             //**************************************************************************************
-            sql = "";
+            sql = "with countGroup(groupNum,numberOfPartic) as (select groupId,count(*) from Students group by groupId), interestCount(projectNum,NumberOfInterest) as (select fypId,count(*) from InterestedIn group by fypId) select F.fypId,F.title,F.fypCategory,F.fypType,F.minStudents,F.maxStudents from FYProject F,interestedin I,ProjectGroup G where (i.fypid = f.fypid and G.groupId = i.groupId )and i.groupId = "+groupId+" and g.fypAssigned is null and F.fypId in (select projectNum from interestCount where numberOfInterest = 1 ) and (F.minStudents <= (select numberOfPartic from countGroup where groupNum = "+groupId+" )and F.maxStudents >= (select numberOfPartic from countGroup where groupNum = "+groupId+" ) ) order by F.title";
             return myOracleDBAccess.GetData(sql);
         }
 
@@ -513,7 +514,7 @@ namespace FYPMSWebsite.App_Code
             // Construct the SQL SELECT statement to retrieve the value of all the       *
             // attributes of the students in a project group identified by its group id. *
             //****************************************************************************
-            sql = "";
+            sql = "select s.username,s.studentname,s.groupid from Students S,projectgroup p where s.groupid = p.groupid and p.groupid = "+groupid;
             return myOracleDBAccess.GetData(sql);
         }
 
@@ -524,7 +525,7 @@ namespace FYPMSWebsite.App_Code
             // Construct the SQL SELECT statement to retrieve the        *
             // group id for the student identified by his/her username.  *
             //************************************************************
-            sql = "";
+            sql = "select groupId from Students where username = '"+username+"'";
             return myOracleDBAccess.GetData(sql);
         }
 
@@ -547,7 +548,7 @@ namespace FYPMSWebsite.App_Code
             // type and priority of the projects for which a group, identified by its group   *
             // id, HAS ALREADY indicated an interest. Order the result by priority ascending. *
             //*********************************************************************************
-            sql = "";
+            sql = "select p.fypId,p.title,p.fypcategory,p.fyptype,i.fyppriority from FYProject P,interestedin I where i.fypid = p.fypid and I.groupid = "+groupID+" order by i.fyppriority asc";
             return myOracleDBAccess.GetData(sql);
         }
 
