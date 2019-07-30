@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using Oracle.DataAccess.Client;
 
 
@@ -47,7 +47,7 @@ namespace FYPMSWebsite.App_Code
             // Construct the SQL SELECT statement to retrieve the the number of projects  *
             // to which a faculty, identified by his/her username, is assigned as reader. *
             //*****************************************************************************
-            sql = "SELECT count(*) FROM Faculty left outer join ProjectGroup on reader = username where projectGroup.reader = '"+username+"' group by faculty.username";
+            sql = "SELECT count(*) FROM Faculty left outer join ProjectGroup on reader = username where projectGroup.reader = '" + username + "' group by faculty.username";
             return myOracleDBAccess.GetAggregateValue(sql);
         }
 
@@ -158,7 +158,7 @@ namespace FYPMSWebsite.App_Code
             // a project identified by its fyp id where the project is available. Order the  *
             // result first by group id ascending and then by student name ascending.        *
             //********************************************************************************
-            sql = "select s.studentname,s.username,i.groupId,i.fyppriority from ProjectGroup G, interestedin i,students s where i.groupid = s.groupid and s.groupId = g.groupId and i.fypId = " + fypId + " and g.fypAssigned is null order by i.groupid asc, s.studentname asc";
+            sql = "select groupId,fyppriority,studentname,username from ProjectGroup natural join InterestedIn natural join Students where fypId = "+fypId+" and fypAssigned is null order by groupId asc,studentname asc";
             //sql = "select s.studentname,s.username,i.groupId,i.fyppriority from interestedin i,students s where i.groupid = s.groupid and i.fypId = " + fypId + " order by i.groupid asc, s.studentname asc";
             return myOracleDBAccess.GetData(sql);
         }
